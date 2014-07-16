@@ -14,7 +14,7 @@ class DnsClient(ns: InetSocketAddress, upstream: ActorRef) extends Actor with Ac
 
   def receive = {
     case Udp.Bound(local) =>
-      log.info(s"Bound to UDP address $local")
+      log.debug(s"Bound to UDP address $local")
       context.become(ready(sender()))
       unstashAll()
     case r: Question4 =>
@@ -26,29 +26,29 @@ class DnsClient(ns: InetSocketAddress, upstream: ActorRef) extends Actor with Ac
   def ready(socket: ActorRef): Receive = {
     {
       case Question4(id, name) =>
-        log.info(s"Resolving $name (A)")
+        log.debug(s"Resolving $name (A)")
         val msg4 = Message(id,
           MessageFlags(recursionDesired = true),
           Seq(
             Question(name, RecordType.A, RecordClass.IN)
           ))
-        log.info(s"Message to $ns: $msg4")
+        log.debug(s"Message to $ns: $msg4")
         socket ! Udp.Send(msg4.write(), ns)
 
       case Question6(id, name) =>
-        log.info(s"Resolving $name (AAAA)")
+        log.debug(s"Resolving $name (AAAA)")
         val msg6 = Message(id,
           MessageFlags(recursionDesired = true),
           Seq(
             Question(name, RecordType.AAAA, RecordClass.IN)
           ))
-        log.info(s"Message to $ns: $msg6")
+        log.debug(s"Message to $ns: $msg6")
         socket ! Udp.Send(msg6.write(), ns)
 
       case Udp.Received(data, remote) =>
-        log.info(s"Received message from $remote: $data")
+        log.debug(s"Received message from $remote: $data")
         val msg = Message.parse(data)
-        log.info(s"Decoded: $msg")
+        log.debug(s"Decoded: $msg")
         if (msg.flags.responseCode == ResponseCode.SUCCESS) {
           upstream ! Answer(msg.id, msg.answerRecs)
         } else {
