@@ -1,6 +1,6 @@
 /**
- * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
- */
+  * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+  */
 package akka.testkit
 
 import akka.actor.ActorSystem
@@ -31,7 +31,7 @@ object AkkaSpec {
           }
         }
       }
-                                                   """)
+    """)
 
   def mapToConfig(map: Map[String, AnyRef]): Config = {
     import scala.collection.JavaConverters._
@@ -43,7 +43,7 @@ object AkkaSpec {
       .dropWhile(_ matches "(java.lang.Thread|.*AkkaSpec.?$)")
     val reduced = s.lastIndexWhere(_ == clazz.getName) match {
       case -1 ⇒ s
-      case z  ⇒ s drop (z + 1)
+      case z ⇒ s drop (z + 1)
     }
     reduced.head.replaceFirst(""".*\.""", "").replaceAll("[^a-zA-Z_0-9]", "_")
   }

@@ -19,12 +19,19 @@ object ResponseCode extends Enumeration {
 
 case class MessageFlags(flags: Short) extends AnyVal {
   def isQuery: Boolean = (flags & 0x8000) == 0
+
   def isAnswer = !isQuery
+
   def opCode: OpCode.Value = OpCode((flags & 0x7800) >> 11)
+
   def isAuthoritativeAnswer: Boolean = (flags & (1 << 10)) != 0
+
   def isTruncated: Boolean = (flags & (1 << 9)) != 0
+
   def isRecursionDesired: Boolean = (flags & (1 << 8)) != 0
+
   def isRecursionAvailable: Boolean = (flags & (1 << 7)) != 0
+
   def responseCode: ResponseCode.Value = {
     ResponseCode(flags & 0x0f)
   }
@@ -94,10 +101,10 @@ object Message {
     val nsCount = it.getShort
     val arCount = it.getShort
 
-    val qs = (0 until qdCount) map { i => Question.parse(it, msg)}
-    val ans = (0 until anCount) map { i => ResourceRecord.parse(it, msg)}
-    val nss = (0 until nsCount) map { i => ResourceRecord.parse(it, msg)}
-    val ars = (0 until arCount) map { i => ResourceRecord.parse(it, msg)}
+    val qs = (0 until qdCount) map { i => Question.parse(it, msg) }
+    val ans = (0 until anCount) map { i => ResourceRecord.parse(it, msg) }
+    val nss = (0 until nsCount) map { i => ResourceRecord.parse(it, msg) }
+    val ars = (0 until arCount) map { i => ResourceRecord.parse(it, msg) }
 
     new Message(id, new MessageFlags(flags), qs, ans, nss, ars)
   }

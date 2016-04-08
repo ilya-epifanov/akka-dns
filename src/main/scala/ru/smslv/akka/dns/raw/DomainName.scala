@@ -31,7 +31,7 @@ object DomainName {
         return r
       }
 
-      if (ret.length != 0)
+      if (ret.nonEmpty)
         ret.append('.')
 
       if ((length & 0xc0) == 0xc0) {

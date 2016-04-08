@@ -2,6 +2,7 @@ package ru.smslv.akka.dns
 
 import java.net.InetSocketAddress
 
+import akka.io.AsyncDnsResolver
 import org.scalatest.{ShouldMatchers, WordSpec}
 
 class NameserverAddressParserSpec extends WordSpec with ShouldMatchers {
