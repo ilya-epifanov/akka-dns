@@ -2,15 +2,13 @@ organization := "ru.smslv.akka"
 
 name := "akka-dns"
 
-version := "0.1-SNAPSHOT"
+version := "2.4.0"
 
 scalaVersion := "2.11.8"
 
 crossScalaVersions := Seq("2.11.8", "2.12.0-M4")
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
-
-resolvers += "Typesafe snapshots" at "https://repo.typesafe.com/typesafe/snapshots/"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % "2.4.7",
