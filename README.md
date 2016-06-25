@@ -43,3 +43,19 @@ akka.io.dns {
   }
 }
 ```
+
+To actually resolve addresses using akka-dns:
+
+```scala
+// send dns request
+IO(Dns) ! Dns.Resolve("example.com")
+
+// wait for Dns.Resolved
+def receive = {
+  case Dns.Resolved(name, ipv4, ipv6) =>
+    ...
+}
+
+// just to try it out synchronously
+val answer = Await.result(IO(Dns) ? Dns.Resolve("a-single.test.smslv.ru"), duration).asInstanceOf[Dns.Resolved]
+```
