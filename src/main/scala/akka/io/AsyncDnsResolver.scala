@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import com.typesafe.config.Config
-import ru.smslv.akka.dns.raw.{AAAARecord, ARecord, Answer, CNAMERecord, DnsClient, Question4, Question6}
+import ru.smslv.akka.dns.raw.{AAAARecord, ARecord, Answer, CNAMERecord, DnsClient, Question4, Question6, SRVRecord, SrvQuestion}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
@@ -16,6 +16,7 @@ private case class CurrentRequest(client: ActorRef,
                                   name: String,
                                   ipv4: Option[immutable.Seq[Inet4Address]],
                                   ipv6: Option[immutable.Seq[Inet6Address]],
+                                  srv: Option[immutable.Seq[SRVRecord]],
                                   ttl: Long)
 
 class AsyncDnsResolver(cache: SimpleDnsCache, config: Config) extends Actor with ActorLogging {
@@ -25,6 +26,7 @@ class AsyncDnsResolver(cache: SimpleDnsCache, config: Config) extends Actor with
   private val nameServers: immutable.Seq[InetSocketAddress] = config.getStringList("nameservers").map(parseNameserverAddress)(breakOut)
   private val resolveIpv4 = config.getBoolean("resolve-ipv4")
   private val resolveIpv6 = config.getBoolean("resolve-ipv6")
+  private val resolveSrv = config.getBoolean("resolve-srv")
   private val negativeTtl = config.getDuration("negative-ttl", TimeUnit.MILLISECONDS)
   private val minPositiveTtl = config.getDuration("max-positive-ttl", TimeUnit.MILLISECONDS)
   private val maxPositiveTtl = config.getDuration("max-positive-ttl", TimeUnit.MILLISECONDS)
@@ -46,6 +48,15 @@ class AsyncDnsResolver(cache: SimpleDnsCache, config: Config) extends Actor with
   }
 
   override def receive = {
+    case Dns.Resolve(name) if resolveSrv && isSrv(name) =>
+      val id = nextId()
+
+      val caseFoldedName = name.toLowerCase
+
+      requests += id -> CurrentRequest(sender(), caseFoldedName, None, None, Some(immutable.Seq.empty), maxPositiveTtl)
+
+      resolvers(random.nextInt(resolvers.length)) ! SrvQuestion(id, caseFoldedName)
+
     case Dns.Resolve(name) =>
       val id = nextId()
 
@@ -54,8 +65,8 @@ class AsyncDnsResolver(cache: SimpleDnsCache, config: Config) extends Actor with
       requests += id -> CurrentRequest(sender(), caseFoldedName,
         if (resolveIpv4) None else Some(immutable.Seq.empty),
         if (resolveIpv6) None else Some(immutable.Seq.empty),
-        maxPositiveTtl
-      )
+        None,
+        maxPositiveTtl)
 
       if (resolveIpv4) {
         resolvers(random.nextInt(resolvers.length)) ! Question4(id, caseFoldedName)
@@ -87,25 +98,33 @@ class AsyncDnsResolver(cache: SimpleDnsCache, config: Config) extends Actor with
       }
 
       requests.get(baseId) match {
-        case Some(req@CurrentRequest(client, name, None, _, currentTtl)) if (id & 1) == 0 =>
+        case Some(req@CurrentRequest(client, name, None, _, None, currentTtl)) if (id & 1) == 0 =>
           val canonicalName = resolveCanonicalName(name)
           val ttl = rrsMinTtl.map(math.min(currentTtl, _)).getOrElse(currentTtl)
           requests.put(baseId, req.copy(ipv4 = Some(rrs.collect({
             case ARecord(incomingName, _, addr) if incomingName.toLowerCase == canonicalName =>
               addr
           })(breakOut)), ttl = ttl))
-        case Some(req@CurrentRequest(client, name, _, None, currentTtl)) if (id & 1) == 1 =>
+        case Some(req@CurrentRequest(client, name, _, None, None, currentTtl)) if (id & 1) == 1 =>
           val canonicalName = resolveCanonicalName(name)
           val ttl = rrsMinTtl.map(math.min(currentTtl, _)).getOrElse(currentTtl)
           requests.put(baseId, req.copy(ipv6 = Some(rrs.collect({
             case AAAARecord(incomingName, _, addr) if incomingName.toLowerCase == canonicalName =>
               addr
           })(breakOut)), ttl = ttl))
+        case Some(req@CurrentRequest(client, name, None, None, _, currentTtl)) =>
+          val canonicalName = resolveCanonicalName(name)
+          val ttl = rrsMinTtl.map(math.min(currentTtl, _)).getOrElse(currentTtl)
+          val srv = rrs.collect({
+            case rec: SRVRecord if rec.name.toLowerCase == canonicalName =>
+              rec
+          })(breakOut)
+          requests.put(baseId, req.copy(srv = Some(srv), ttl = ttl))
         case None =>
       }
 
       requests.get(baseId) match {
-        case Some(CurrentRequest(client, name, Some(ipv4), Some(ipv6), recordsTtl)) =>
+        case Some(CurrentRequest(client, name, Some(ipv4), Some(ipv6), None, recordsTtl)) =>
           val ttl = if (ipv4.isEmpty && ipv6.isEmpty) {
             negativeTtl
           } else {
@@ -115,6 +134,9 @@ class AsyncDnsResolver(cache: SimpleDnsCache, config: Config) extends Actor with
           cache.put(Dns.Resolved(name, ipv4, ipv6), ttl)
           client ! Dns.Resolved(name, ipv4, ipv6)
           requests -= baseId
+        case Some(CurrentRequest(client, name, None, None, Some(srv), recordsTtl)) =>
+          client ! SrvResolved(name, srv)
+          requests -= baseId
         case _ =>
       }
   }
@@ -123,8 +145,13 @@ class AsyncDnsResolver(cache: SimpleDnsCache, config: Config) extends Actor with
 object AsyncDnsResolver {
   private val inetSocketAddress = """(.*?)(?::(\d+))?""".r
 
+  case class SrvResolved(name: String, srv: immutable.Seq[SRVRecord])
+
   def parseNameserverAddress(str: String): InetSocketAddress = {
     val inetSocketAddress(host, port) = str
     new InetSocketAddress(host, Option(port).map(_.toInt).getOrElse(53))
   }
+
+  private[io] def isSrv(name: String) =
+    name.nonEmpty && name(0) == '_'
 }
