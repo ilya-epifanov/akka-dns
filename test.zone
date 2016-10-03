@@ -1,0 +1,20 @@
+$ORIGIN smslv.ru.
+@	900	IN	SOA	ns-1647.awsdns-13.co.uk. awsdns-hostmaster.amazon.com. 1 7200 900 1209600 86400
+@	172800	IN	NS	ns-1647.awsdns-13.co.uk.
+@	172800	IN	NS	ns-1362.awsdns-42.org.
+@	172800	IN	NS	ns-970.awsdns-57.net.
+@	172800	IN	NS	ns-200.awsdns-25.com.
+_http._tcp	60	IN	SRV	10 15 80 a-single.test.smslv.ru.
+a-double.test	86400	IN	A	1.4.32.128
+a-double.test	86400	IN	A	2.8.16.64
+a-single.test	86400	IN	A	1.4.32.128
+a+aaaa.test	86400	IN	A	1.4.32.128
+a+aaaa.test	86400	IN	A	2.8.16.64
+a+aaaa.test	86400	IN	AAAA	2001:db8:85a3::8a2e:370:7334
+a+aaaa.test	86400	IN	AAAA	fe80::202:b3ff:fe1e:8329
+aaaa-double.test	86400	IN	AAAA	2001:db8:85a3::8a2e:370:7334
+aaaa-double.test	86400	IN	AAAA	fe80::202:b3ff:fe1e:8329
+aaaa-single.test	86400	IN	AAAA	2001:db8:85a3::8a2e:370:7334
+cname-ext.test	86400	IN	CNAME	a-single.test.smartislav.ru
+cname-int.test	86400	IN	CNAME	a-double.test.smslv.ru
+_http._tcp.smslv.ru	86400	IN	SRV	10	15	80	a-single.test.smslv.ru.
