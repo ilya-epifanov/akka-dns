@@ -1,4 +1,5 @@
 ![Build status](https://travis-ci.org/ilya-epifanov/akka-dns.svg?branch=master)
+[![Download](https://api.bintray.com/packages/hajile/maven/akka-dns/images/download.svg) ](https://bintray.com/hajile/maven/akka-dns/_latestVersion)
 
 akka-dns
 ========
@@ -11,7 +12,7 @@ Usage
 Add a dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "ru.smslv.akka" %% "akka-dns" % "2.4.0"
+libraryDependencies += "ru.smslv.akka" %% "akka-dns" % "2.4.1-M1"
 ```
 
 Configure akka-dns in `application.conf`:
@@ -36,6 +37,7 @@ akka.io.dns {
 
     resolve-ipv4 = true
     resolve-ipv6 = true
+    resolve-srv  = false
 
     # How often to sweep out expired cache entries.
     # Note that this interval has nothing to do with TTLs
@@ -48,7 +50,7 @@ To actually resolve addresses using akka-dns:
 
 ```scala
 // send dns request
-IO(Dns) ! Dns.Resolve("example.com")
+IO(Dns) ! Dns.Resolve("a-single.test.smslv.ru")
 
 // wait for Dns.Resolved
 def receive = {
@@ -58,4 +60,25 @@ def receive = {
 
 // just to try it out synchronously
 val answer = Await.result(IO(Dns) ? Dns.Resolve("a-single.test.smslv.ru"), duration).asInstanceOf[Dns.Resolved]
+```
+
+You can also resolve SRV records if you enable a config option:
+```
+akka.io.dns.async-dns.resolve-srv = true
+```
+
+The only difference with ordinary usage is that you send a regular Dns.Resovle request with a domain name 
+that starts with `_` and wait for a `SrvResolved` message instead of a `Dns.Resolved` one, like this:
+```scala
+// send dns request
+IO(Dns) ! Dns.Resolve("_http._tcp.smslv.ru")
+
+// wait for SrvResolved
+def receive = {
+  case SrvResolved(name, records: immutable.Seq[SRVRecord]) =>
+    ...
+}
+
+// just to try it out synchronously
+val answer = Await.result(IO(Dns) ? Dns.Resolve("_http._tcp.smslv.ru"), duration).asInstanceOf[SrvResolved]
 ```

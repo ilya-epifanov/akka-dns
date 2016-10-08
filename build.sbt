@@ -2,16 +2,16 @@ organization := "ru.smslv.akka"
 
 name := "akka-dns"
 
-version := "2.4.0"
+version := "2.4.1-M1"
 
 scalaVersion := "2.11.8"
 
-crossScalaVersions := Seq("2.11.8", "2.12.0-M4")
+crossScalaVersions := Seq("2.11.8", "2.12.0-RC1")
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor" % "2.4.7",
-  "com.typesafe.akka" %% "akka-testkit" % "2.4.7" % "test",
-  "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+  "com.typesafe.akka" %% "akka-actor" % "2.4.11",
+  "com.typesafe.akka" %% "akka-testkit" % "2.4.11" % Test,
+  "org.scalatest" %% "scalatest" % "3.0.0" % Test
 )
