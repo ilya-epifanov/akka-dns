@@ -63,6 +63,26 @@ object CNAMERecord {
   }
 }
 
+case class SRVRecord(override val name: String, override val ttl: Int,
+                     priority: Int, weight: Int, port: Int, target: String) extends ResourceRecord(name, ttl, RecordType.SRV.id.toShort, RecordClass.IN.id.toShort) {
+  override def write(it: ByteStringBuilder): Unit = {
+    super.write(it)
+    it.putShort(priority)
+    it.putShort(weight)
+    it.putShort(port)
+    DomainName.write(it, target)
+  }
+}
+
+object SRVRecord {
+  def parseBody(name: String, ttl: Int, length: Short, it: ByteIterator, msg: ByteString): SRVRecord = {
+    val priority = it.getShort
+    val weight = it.getShort
+    val port = it.getShort
+    SRVRecord(name, ttl, priority, weight, port, DomainName.parse(it, msg))
+  }
+}
+
 case class UnknownRecord(override val name: String, override val ttl: Int,
                          override val recType: Short, override val recClass: Short,
                          data: ByteString) extends ResourceRecord(name, ttl, recType, recClass) {
@@ -95,6 +115,8 @@ object ResourceRecord {
         CNAMERecord.parseBody(name, ttl, rdLength, data, msg)
       case 28 =>
         AAAARecord.parseBody(name, ttl, rdLength, data)
+      case 33 =>
+        SRVRecord.parseBody(name, ttl, rdLength, data, msg)
       case _ =>
         UnknownRecord.parseBody(name, ttl, recType, recClass, rdLength, data)
     }

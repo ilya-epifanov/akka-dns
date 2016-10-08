@@ -20,6 +20,7 @@ object RecordType extends Enumeration {
   val MX = Value(15)
   val TXT = Value(16)
   val AAAA = Value(28)
+  val SRV = Value(33)
 
   val AXFR = Value(252)
   val MAILB = Value(253)

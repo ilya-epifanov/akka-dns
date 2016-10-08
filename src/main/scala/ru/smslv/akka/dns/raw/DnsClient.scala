@@ -21,6 +21,8 @@ class DnsClient(ns: InetSocketAddress, upstream: ActorRef) extends Actor with Ac
       stash()
     case r: Question6 =>
       stash()
+    case r: SrvQuestion =>
+      stash()
   }
 
   def ready(socket: ActorRef): Receive = {
@@ -45,6 +47,16 @@ class DnsClient(ns: InetSocketAddress, upstream: ActorRef) extends Actor with Ac
         log.debug(s"Message to $ns: $msg6")
         socket ! Udp.Send(msg6.write(), ns)
 
+      case SrvQuestion(id, name) =>
+        log.debug(s"Resolving $name (SRV)")
+        val msg = Message(id,
+          MessageFlags(recursionDesired = true),
+          Seq(
+            Question(name, RecordType.SRV, RecordClass.IN)
+          ))
+        log.debug(s"Message to $ns: $msg")
+        socket ! Udp.Send(msg.write(), ns)
+
       case Udp.Received(data, remote) =>
         log.debug(s"Received message from $remote: $data")
         val msg = Message.parse(data)
@@ -60,6 +72,8 @@ class DnsClient(ns: InetSocketAddress, upstream: ActorRef) extends Actor with Ac
     }
   }
 }
+
+case class SrvQuestion(id: Short, name: String)
 
 case class Question4(id: Short, name: String)
 

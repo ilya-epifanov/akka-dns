@@ -3,6 +3,7 @@ package ru.smslv.akka.dns
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
+import akka.io.AsyncDnsResolver.SrvResolved
 import akka.io.{Dns, IO}
 import akka.pattern.ask
 import akka.testkit.AkkaSpec
@@ -15,6 +16,7 @@ class AsyncDnsResolverSpec extends AkkaSpec(
   """
     akka.io.dns.resolver = async-dns
     akka.io.dns.async-dns.nameservers = ["8.8.8.8", "8.8.4.4"]
+    akka.io.dns.async-dns.resolve-srv = true
   """) {
   val duration = Duration(10, TimeUnit.SECONDS)
   implicit val timeout = Timeout(duration)
@@ -75,6 +77,14 @@ class AsyncDnsResolverSpec extends AkkaSpec(
         InetAddress.getByName("1.4.32.128"), InetAddress.getByName("2.8.16.64")
       ))
       answer.ipv6.toSet should be(empty)
+    }
+    "resolve SRV record" in {
+      val answer = Await.result(IO(Dns) ? Dns.Resolve("_http._tcp.smslv.ru"), duration).asInstanceOf[SrvResolved]
+      answer.name should equal("_http._tcp.smslv.ru")
+      answer.srv.head.name should equal("_http._tcp.smslv.ru")
+      answer.srv.head.priority should equal(10)
+      answer.srv.head.port should equal(80)
+      answer.srv.head.target should equal("a-single.test.smslv.ru")
     }
     "resolve same address twice" in {
       def resolve() = {
