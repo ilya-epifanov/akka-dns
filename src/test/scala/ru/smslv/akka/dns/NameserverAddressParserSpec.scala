@@ -3,9 +3,9 @@ package ru.smslv.akka.dns
 import java.net.InetSocketAddress
 
 import akka.io.AsyncDnsResolver
-import org.scalatest.{ShouldMatchers, WordSpec}
+import org.scalatest.{Matchers, WordSpec}
 
-class NameserverAddressParserSpec extends WordSpec with ShouldMatchers {
+class NameserverAddressParserSpec extends WordSpec with Matchers {
   "Parser" should {
     "handle explicit port in IPv4 address" in {
       AsyncDnsResolver.parseNameserverAddress("8.8.8.8:153") should equal(new InetSocketAddress("8.8.8.8", 153))

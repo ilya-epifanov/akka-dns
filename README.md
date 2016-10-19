@@ -4,7 +4,7 @@
 akka-dns
 ========
 
-A fully asynchronous DNS resolver for Akka,
+A fully asynchronous DNS resolver for Akka.
 
 Usage
 -----
@@ -15,7 +15,16 @@ Add a dependency to your `build.sbt`:
 libraryDependencies += "ru.smslv.akka" %% "akka-dns" % "2.4.1-M1"
 ```
 
-Configure akka-dns in `application.conf`:
+Configure akka-dns in `application.conf`. If you can rely on `/etc/resolv.conf` being available (which should be the case for most flavors of Unix):
+
+```
+akka.io.dns {
+  resolver = async-dns
+  async-dns.resolv-conf = on
+}
+```
+
+Alternatively you can also configure the nameservers explicitly:
 
 ```
 akka.io.dns {
@@ -26,7 +35,12 @@ akka.io.dns {
 }
 ```
 
-There are some other tunables, too, here're their defaults:
+Note that you can declare both `resolv-conf` and `nameservers` in which case the latter will be used in the case where `/etc/resolv.conf` cannot be found/parsed.
+
+Advanced configuration
+----------------------
+
+There are some other tunables, too, here are their defaults:
 
 ```
 akka.io.dns {
