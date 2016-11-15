@@ -10,7 +10,7 @@ import com.typesafe.config.Config
 import ru.smslv.akka.dns.raw.{AAAARecord, ARecord, Answer, CNAMERecord, DnsClient, Question4, Question6, SRVRecord, SrvQuestion}
 
 import scala.annotation.tailrec
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.{breakOut, immutable}
 import scala.concurrent.duration.{Deadline, FiniteDuration}
 import scala.io.Source
@@ -26,7 +26,7 @@ class AsyncDnsResolver(cache: SimpleDnsCache, config: Config) extends Actor with
     else
       Option.empty[immutable.Seq[InetSocketAddress]]
   private val nameServers: immutable.Seq[InetSocketAddress] =
-    systemNameServers.getOrElse(config.getStringList("nameservers").map(parseNameserverAddress)(breakOut))
+    systemNameServers.getOrElse(config.getStringList("nameservers").asScala.map(parseNameserverAddress)(breakOut))
   private val resolveIpv4 = config.getBoolean("resolve-ipv4")
   private val resolveIpv6 = config.getBoolean("resolve-ipv6")
   private val resolveSrv = config.getBoolean("resolve-srv")
