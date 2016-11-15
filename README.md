@@ -12,7 +12,7 @@ Usage
 Add a dependency to your `build.sbt`:
 
 ```scala
-libraryDependencies += "ru.smslv.akka" %% "akka-dns" % "2.4.2-M1"
+libraryDependencies += "ru.smslv.akka" %% "akka-dns" % "2.4.2"
 ```
 
 Configure akka-dns in `application.conf`. If you can rely on `/etc/resolv.conf` being available (which should be the case for most flavors of Unix):
