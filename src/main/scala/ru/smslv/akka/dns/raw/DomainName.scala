@@ -7,7 +7,7 @@ object DomainName {
     (name.length + 2).toShort
   }
 
-  def write(it: ByteStringBuilder, name: String) {
+  def write(it: ByteStringBuilder, name: String) = {
     for (label <- name.split('.')) {
       it.putByte(label.length.toByte)
       for (c <- label) {
@@ -22,7 +22,7 @@ object DomainName {
     //    ret.sizeHint(getNameLength(it.clone(), 0))
     //    println("Parsing name")
     while (true) {
-      val length = it.getByte
+      val length: Int = it.getByte.toInt
       //      println(s"Label length: $length")
 
       if (length == 0) {
