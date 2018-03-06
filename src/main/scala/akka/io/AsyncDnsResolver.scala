@@ -31,7 +31,7 @@ class AsyncDnsResolver(cache: SimpleDnsCache, config: Config) extends Actor with
   private val resolveIpv6 = config.getBoolean("resolve-ipv6")
   private val resolveSrv = config.getBoolean("resolve-srv")
   private val negativeTtl = config.getDuration("negative-ttl", TimeUnit.MILLISECONDS)
-  private val minPositiveTtl = config.getDuration("max-positive-ttl", TimeUnit.MILLISECONDS)
+  private val minPositiveTtl = config.getDuration("min-positive-ttl", TimeUnit.MILLISECONDS)
   private val maxPositiveTtl = config.getDuration("max-positive-ttl", TimeUnit.MILLISECONDS)
   private val requestTtl = FiniteDuration(config.getDuration("request-ttl", TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
 
