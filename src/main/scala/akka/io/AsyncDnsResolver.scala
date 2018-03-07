@@ -129,21 +129,21 @@ class AsyncDnsResolver(cache: SimpleDnsCache, config: Config) extends Actor with
       }
 
       requests = requests.find(_._1 == baseId) match {
-        case Some((_, req@CurrentRequest(client, name, None, _, None, currentTtl, _))) if (id & 1) == 0 =>
+        case Some((_, req@CurrentRequest(_, name, None, _, None, currentTtl, _))) if (id & 1) == 0 =>
           val canonicalName = resolveCanonicalName(name)
           val ttl = rrsMinTtl.fold(currentTtl)(math.min(currentTtl, _))
           (baseId, req.copy(ipv4 = Some(rrs.collect({
             case ARecord(incomingName, _, addr) if incomingName.toLowerCase == canonicalName =>
               addr
           })(breakOut)), ttl = ttl)) +: requests.filterNot(_._1 == baseId)
-        case Some((_, req@CurrentRequest(client, name, _, None, None, currentTtl, _))) if (id & 1) == 1 =>
+        case Some((_, req@CurrentRequest(_, name, _, None, None, currentTtl, _))) if (id & 1) == 1 =>
           val canonicalName = resolveCanonicalName(name)
           val ttl = rrsMinTtl.fold(currentTtl)(math.min(currentTtl, _))
           (baseId, req.copy(ipv6 = Some(rrs.collect({
             case AAAARecord(incomingName, _, addr) if incomingName.toLowerCase == canonicalName =>
               addr
           })(breakOut)), ttl = ttl)) +: requests.filterNot(_._1 == baseId)
-        case Some((_, req@CurrentRequest(client, name, None, None, _, currentTtl, _))) =>
+        case Some((_, req@CurrentRequest(_, name, None, None, _, currentTtl, _))) =>
           val canonicalName = resolveCanonicalName(name)
           val ttl = rrsMinTtl.fold(currentTtl)(math.min(currentTtl, _))
           val srv = rrs.collect({
@@ -166,7 +166,7 @@ class AsyncDnsResolver(cache: SimpleDnsCache, config: Config) extends Actor with
           cache.put(Dns.Resolved(name, ipv4, ipv6), ttl)
           client ! Dns.Resolved(name, ipv4, ipv6)
           requests.filterNot(_._1 == baseId)
-        case Some((_, CurrentRequest(client, name, None, None, Some(srv), recordsTtl, _))) =>
+        case Some((_, CurrentRequest(client, name, None, None, Some(srv), _, _))) =>
           client ! SrvResolved(name, srv)
           requests.filterNot(_._1 == baseId)
         case _ =>

@@ -3,7 +3,7 @@ package ru.smslv.akka.dns.raw
 import akka.util.{ByteIterator, ByteString, ByteStringBuilder}
 
 case class Question(name: String, qType: RecordType.Value, qClass: RecordClass.Value) {
-  def write(out: ByteStringBuilder) {
+  def write(out: ByteStringBuilder): Unit = {
     DomainName.write(out, name)
     RecordType.write(out, qType)
     RecordClass.write(out, qClass)

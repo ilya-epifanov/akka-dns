@@ -17,11 +17,11 @@ class DnsClient(ns: InetSocketAddress, upstream: ActorRef) extends Actor with Ac
       log.debug(s"Bound to UDP address $local")
       context.become(ready(sender()))
       unstashAll()
-    case r: Question4 =>
+    case _: Question4 =>
       stash()
-    case r: Question6 =>
+    case _: Question6 =>
       stash()
-    case r: SrvQuestion =>
+    case _: SrvQuestion =>
       stash()
   }
 
